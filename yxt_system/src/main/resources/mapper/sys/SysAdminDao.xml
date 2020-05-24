@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.songlanyun.jymall.modules.business.sys.dao.SysAdminDao">
+	<select id="getGoodsByActId" parameterType="java.lang.Integer"
+		resultType="com.songlanyun.jymall.modules.business.goods.entity.YjGoods">
+		SELECT
+		a.`goods_id`,a.`goods_name`,a.`selling_point`,a.`category_id`,a.`spec_type`,a.`sales_initial`,
+		a.`sales_actual`,a.`goods_sort`,a.`goods_status`,a.`is_delete`,a.`create_time`,a.`update_time`,
+		a.`img_urls`,a.`activity_id`,a.`has_activity`,a.`activity_type`,a.`price`,a.`discount`,a.`freight`,a.`consig`,a.`wxapp_id`,a.`goods_type`
+		FROM yj_goods a WHERE a.`activity_id`=#{activityId} AND
+		a.`has_activity`=TRUE
+	</select>
+	<update id="deleteActGoods" parameterType="java.lang.Integer">
+		UPDATE yj_goods a SET
+		a.`activity_id`=NULL,a.`has_activity`=FALSE,a.`activity_type`=0 WHERE
+		a.`goods_id`=#{goodsId}
+	</update>
+	<select id="getIncreaOrderList" resultType="com.songlanyun.jymall.modules.business.order.entity.Order">
+		SELECT * FROM yj_order a WHERE a.`create_time` &lt;= DATE_SUB(NOW(),
+		INTERVAL 15 MINUTE) AND a.`order_status` !=70 AND a.`pay_status`=10
+		AND a.`stock_statu` !=1
+	</select>
+	<select id="getOrderInfo" resultType="com.songlanyun.jymall.modules.business.order.entity.Order"
+		parameterType="java.lang.String">
+		SELECT * FROM yj_order a WHERE a.`order_no`=#{orderNo}
+	</select>
+
+	<update id="updateIncreaOrderList" parameterType="com.songlanyun.jymall.modules.business.order.entity.Order">
+		UPDATE yj_order a SET a.`stock_statu`=1 WHERE a.`order_no`=#{orderNo}
+	</update>
+
+	<select id="getGoodsSkuByGoodsId" parameterType="java.lang.Integer"
+		resultType="com.songlanyun.jymall.modules.business.goods.entity.YjGoodsSku">
+		SELECT * FROM yj_goods_sku a WHERE a.`goods_id`=#{goodsId}
+	</select>
+
+	<select id="getServiceConsig" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT a.`consig` FROM yj_goods a LEFT JOIN yj_order_goods b ON
+		a.`goods_id`=b.`goods_id`
+		LEFT JOIN yj_order_wholesale c ON b.`order_no`=c.`order_no` WHERE
+		c.`order_no`=#{orderNo} LIMIT 1
+	</select>
+
+	<select id="getDictValue" parameterType="java.lang.Integer"
+		resultType="java.lang.String">
+		SELECT a.`dvalue` FROM yj_dict a WHERE a.`dtype`=#{dtype} LIMIT 1
+	</select>
+
+	<select id="getTempModel" parameterType="java.lang.Integer"
+		resultType="com.songlanyun.jymall.modules.business.jysys.notify.entity.NotifyTemp">
+		SELECT * FROM jy_notify_temp a WHERE a.`id`=#{tempId}
+	</select>
+	<insert id="saveAdviceNotify"
+		parameterType="com.songlanyun.jymall.modules.business.jysys.notify.entity.Notify">
+		INSERT INTO yj_notify
+		(content,title,`type`,user_id)VALUE(#{content},#{title},#{type},#{userId})
+	</insert>
+
+	<update id="updateReexpressNo" parameterType="Map">
+		UPDATE jy_returns_goods a SET a.`express_no`=#{reexpressNo} WHERE
+		a.`order_no`=#{orderNo}
+	</update>
+
+	<update id="updateActivityRecommend" parameterType="java.lang.Integer">
+
+		UPDATE yj_activity a SET a.`has_recommend`=FALSE WHERE a.`id` != #{id}
+	</update>
+	<update id="updateActivityRecommends">
+
+		UPDATE yj_activity a SET a.`has_recommend`=FALSE
+	</update>
+
+
+	<update id="updateRecharge" parameterType="java.lang.String">
+		UPDATE yj_order_recharge a SET a.`is_complete`='1' WHERE
+		a.`order_no`=#{orderNo}
+	</update>
+
+	<select id="getActivitySelectList" resultType="com.songlanyun.jymall.modules.business.goods.entity.Activity">
+		SELECT a.* FROM yj_activity a ORDER BY a.`start_time` DESC
+	</select>
+	<select id="getActivitySelect" resultType="com.songlanyun.jymall.modules.business.goods.entity.Activity">
+		SELECT a.* FROM yj_activity a WHERE a.`id`=#{id}
+	</select>
+
+	<select id="getAllUsers"
+		resultType="com.songlanyun.jymall.modules.business.sys.entity.SysUserEntity">
+		SELECT * FROM sys_user
+	</select>
+
+	<select id="getDirectUser" resultType="java.lang.Long">
+		SELECT a.`user_id` FROM sys_user a WHERE a.`referee`=#{userId} AND
+		a.`user_id`!=#{userId} AND a.`grade_id` &lt; #{gradeId}
+	</select>
+
+	<select id="getBoutiqueMoney" resultType="java.lang.Double">
+		SELECT SUM(A.`pay_price`) FROM yj_order a
+		<where>
+			a.`is_complete`='1' AND a.`boutique_bonus` !='1'
+			AND a.`user_id` IN
+			<foreach collection="ids" item="item" index="index" open="("
+				separator="," close=")">#{item}
+			</foreach>
+		</where>
+	</select>
+	<update id="updateBoutiqueMoney">
+		UPDATE yj_order a SET a.`boutique_bonus`='1'
+		<where>
+			a.`is_complete`='1' AND a.`user_id` IN
+			<foreach collection="ids" item="item" index="index" open="("
+				separator="," close=")">#{item}
+			</foreach>
+		</where>
+	</update>
+	<update id="updateRetailMoney">
+		UPDATE yj_order a SET a.`retail_bonus`='1'
+		<where>
+			a.`is_complete`='1' AND a.`user_id` IN
+			<foreach collection="ids" item="item" index="index" open="("
+				separator="," close=")">#{item}
+			</foreach>
+		</where>
+	</update>
+
+	<select id="getRetailMoney" resultType="java.lang.Double">
+		SELECT SUM(A.`pay_price`) FROM yj_order a
+		<where>
+			a.`is_complete`='1' AND a.`retail_bonus` !='1'
+			AND a.`user_id` IN
+			<foreach collection="ids" item="item" index="index" open="("
+				separator="," close=")">#{item}
+			</foreach>
+		</where>
+	</select>
+
+	<select id="getActivityTotal" resultType="java.lang.Double"
+		parameterType="java.lang.Integer">
+		SELECT SUM(a.`pay_price`) FROM yj_order a
+		WHERE a.`pay_status`=20 AND a.`order_type`=0 AND
+		a.`activity_id`=#{activityId}
+	</select>
+
+	<select id="getGoodsRetailPrice" resultType="java.lang.Double"
+		parameterType="java.lang.String">
+		SELECT a.`retail_price` FROM yj_goods_sku a LEFT JOIN yj_order_goods b
+		ON a.`goods_sku_id`=b.`goods_sku_id` WHERE b.`order_no`=#{orderNo} LIMIT
+		1
+	</select>
+
+	<select id="getGoodsIdByOrderNo" resultType="java.lang.Integer"
+		parameterType="java.lang.String">
+		SELECT a.`goods_id` FROM yj_order_goods a
+		WHERE a.`order_no`=#{orderNo} LIMIT 1
+	</select>
+
+	<select id="getNewActivity" resultType="com.songlanyun.jymall.modules.business.goods.entity.Activity">
+		SELECT a.* FROM yj_activity a WHERE a.`has_recommend`=TRUE LIMIT 1
+	</select>
+	<update id="updateEasyStatus" parameterType="java.lang.String">
+		UPDATE yj_order a SET a.`order_status`=50,a.`update_time`=NOW() WHERE
+		a.`order_no`=#{orderNo}
+	</update>
+	<update id="updateUserEasyMoney"
+		parameterType="com.songlanyun.jymall.modules.business.sys.entity.SysUserEntity">
+		UPDATE sys_user a SET a.`easy_money`=#{easyMoney} WHERE
+		a.`user_id`=#{userId}
+	</update>
+	<update id="updateOrderStatus">
+		UPDATE yj_order a SET a.`order_status`=#{orderStatu},a.`update_time`=NOW()
+		WHERE a.`order_no`=#{orderNo}
+	</update>
+	<update id="updateWholesaleStatus" parameterType="Map">
+		UPDATE yj_order_wholesale a SET a.`order_status`=#{orderStatu}
+		,a.`update_time`=NOW() WHERE a.`order_no`=#{orderNo}
+	</update>
+	<select id="getOrderGoodsByOrderNo" resultType="java.lang.Integer"
+		parameterType="java.lang.String">
+		SELECT a.`consign_num` FROM yj_order_goods a WHERE a.`order_no`=#{orderNo}
+		LIMIT 1
+	</select>
+	<select id="isExitShareOrder" parameterType="java.lang.String"
+		resultType="com.songlanyun.jymall.modules.business.order.entity.Order">
+		SELECT a.* FROM yj_order a WHERE a.`order_no`=#{orderNo} AND
+		a.`order_type`=0
+	</select>
+
+	<update id="updateOrderRedPack" parameterType="java.lang.String">
+		UPDATE yj_order a SET a.`red_packet`=(a.`red_packet`+1) WHERE
+		a.`order_no`=#{orderNo}
+	</update>
+
+	<update id="updateUserGrade">
+		UPDATE sys_user a SET a.`grade_id`=#{grade} WHERE a.`user_id`=#{userId}
+	</update>
+
+	<select id="getUserAgentByUid" parameterType="java.lang.Long"
+		resultType="com.songlanyun.jymall.modules.business.sys.entity.SysUserEntity">
+		SELECT a.* FROM sys_user a WHERE a.`grade_id`=20 AND a.`referee`=#{UserId}
+	</select>
+
+	<insert id="savePaymentSummary"
+		parameterType="com.songlanyun.jymall.modules.business.sys.entity.PaymentSummary">
+		INSERT INTO t_payment_summary (
+		user_id,
+		relation_id,
+		payment_type,
+		order_no,
+		opera_type,
+		money,
+		before_money,
+		after_money,
+		pay_type,
+		remark
+		)
+		VALUES
+		(#{userId},#{relationId},#{paymentType},#{orderNo},#{operaType},#{money},#{beforeMoney},#{afterMoney},#{payType},#{remark})
+	</insert>
+
+	<select id="getUserIdByMobile" parameterType="java.lang.String"
+		resultType="java.lang.Long">
+		SELECT a.`user_id` FROM sys_user a WHERE a.`mobile`=#{mobile} LIMIT 1
+	</select>
+	<select id="getUserIdByUserName" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		SELECT count(1) FROM sys_user_login_info a WHERE a.`username`=#{mobile}
+	</select>
+	<delete id="deleteNotifyById" parameterType="java.lang.Integer">
+		DELETE FROM yj_notify WHERE notify_id=#{id}
+	</delete>
+	<delete id="deleteOrderGoods" parameterType="java.lang.String">
+		DELETE FROM yj_order_goods WHERE order_no=#{orderNo}
+	</delete>
+
+	<insert id="saveUserUpgrade"
+		parameterType="com.songlanyun.jymall.modules.business.sys.entity.UserUpgradeRecode">
+		INSERT INTO t_user_upgrade_recode (
+		user_id,
+		before_grade,
+		after_grade,
+		upgrade_type
+		)
+		VALUES
+		(#{userId},#{beforeGrade},#{afterGrade},#{upgradeType})
+	</insert>
+
+	<select id="personUpgrade" parameterType="java.lang.String"
+		resultType="com.songlanyun.jymall.modules.business.sys.entity.UserUpgradeRecode">
+		SELECT * FROM t_user_upgrade_recode a WHERE a.`user_id`=#{userId}
+	</select>
+	<select id="getYjCategory"
+		resultType="com.songlanyun.jymall.modules.business.goods.entity.YjCategory">
+		SELECT * FROM yj_category a ORDER BY a.`sort` ASC
+	</select>
+
+	<select id="getGoodsNo" resultType="java.lang.Integer"
+		parameterType="com.songlanyun.jymall.modules.business.goods.entity.YjGoodsSku">
+		SELECT COUNT(1) FROM yj_goods_sku a
+		<where>
+			a.`goods_no`=#{goodsNo}
+			<if test="goodsSkuId!=null and goodsSkuId != ''">
+				and a.`goods_sku_id` !=#{goodsSkuId}
+			</if>
+		</where>
+	</select>
+	<select id="getSameCart" parameterType="com.songlanyun.jymall.modules.business.goods.entity.Cart"
+		resultType="com.songlanyun.jymall.modules.business.goods.entity.Cart">
+		SELECT * FROM yj_cart a WHERE a.`user_id`=#{userId} AND
+		a.`goods_id`=#{goodsId} AND a.`goods_sku_id`=#{goodsSkuId} LIMIT 1
+	</select>
+
+	<update id="clearAgentId" parameterType="java.lang.Integer">
+		UPDATE yj_goods a SET a.`agent_id`=NULL WHERE a.`agent_id`=#{id}
+	</update>
+
+	<select id="getGoodSpecName" parameterType="java.lang.Integer"
+		resultType="java.lang.String">
+		SELECT GROUP_CONCAT(DISTINCT a.`spec_name`) FROM yj_spec a LEFT JOIN
+		yj_spec_rel b ON a.`spec_id`=b.`spec_id`
+		WHERE b.`goods_id`=#{goodsId}
+	</select>
+	<select id="getSpecName" parameterType="java.lang.Integer"
+		resultType="java.lang.String">
+		SELECT a.`spec_name` FROM yj_spec a WHERE a.`spec_id`=#{specId}
+	</select>
+
+	<select id="getCategorySubId" resultType="java.lang.Integer"
+		parameterType="java.lang.Integer">
+		SELECT a.`category_id` FROM yj_category a WHERE a.`parent_id`=#{categoryId}
+	</select>
+
+	<update id="updateCategoryStatus" parameterType="java.lang.Integer">
+		UPDATE yj_category SET category_status=20 WHERE category_id=#{id}
+	</update>
+	<select id="getSubGoods" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM yj_goods a
+		<where>
+			a.`category_id` IN
+			<foreach collection="ids" item="item" index="index" open="("
+				separator="," close=")">#{item}</foreach>
+		</where>
+	</select>
+	<select id="getUpAgentMoney" resultType="java.lang.Double">
+		SELECT a.`consum_sum` FROM yj_proceeds_kpi a WHERE a.`level`=20 LIMIT 1
+	</select>
+	<update id="updateActivityComple" parameterType="java.lang.Integer">
+		UPDATE yj_activity a SET a.`is_comple`=1 WHERE a.`id`=#{id}
+	</update>
+
+	<select id="getUserNameById" parameterType="java.lang.String"
+		resultType="java.lang.String">
+		SELECT a.`username` FROM sys_user a WHERE a.`user_id`=#{id} LIMIT 1
+	</select>
+	<select id="getUserNameByIds" parameterType="java.lang.Integer"
+		resultType="java.lang.String">
+		SELECT a.`username` FROM sys_user a WHERE a.`user_id`=#{id} LIMIT 1
+	</select>
+
+	<select id="getDealerIdByGoodsId" parameterType="java.lang.Integer"
+		resultType="java.lang.Integer">
+		SELECT a.`agent_id` FROM yj_goods a WHERE a.`goods_id`=#{goodsId}
+	</select>
+
+	<select id="getOrderNum" resultType="java.lang.Integer" parameterType="Map">
+		SELECT COUNT(1) FROM yj_order a WHERE a.`user_id`=#{userId} AND a.`order_status` IN (10,30,60,70)
+	</select>
+	<select id="getOrderNums" resultType="java.lang.Integer" parameterType="Map">
+		SELECT COUNT(1) FROM yj_order a WHERE a.`user_id`=#{userId} AND a.`order_status` =#{orderStatus}
+	</select>
+	<select id="getCashTotal" parameterType="com.songlanyun.jymall.modules.business.score.entity.CashStatistical" resultType="java.lang.Double">
+		SELECT SUM(a.`money`) FROM yj_cash a WHERE 1=1
+		<if test="status != null ">
+			and a.status=#{status}
+		</if>
+	</select>
+	<select id="getRefuseTotal" parameterType="java.lang.String" resultType="java.lang.Double">
+		SELECT SUM(a.`user_earnings`) FROM yj_wholesa_log a WHERE a.`order_no`=#{orderNo} AND a.`order_status`=20
+	</select>
+	<select id="getWholesaleTotal" parameterType="java.lang.String" resultType="java.lang.Double">
+		SELECT (a.`pay_price`-c.`retail_price`) FROM yj_order_wholesale a LEFT JOIN yj_order_goods b ON a.`order_no`=b.`order_no`
+LEFT JOIN yj_goods_sku c ON b.`goods_sku_id`=c.`goods_sku_id` WHERE a.`order_no`=#{orderNo}
+	</select>
+	<select id="getSubUserId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		SELECT a.`user_id` FROM sys_user a WHERE a.`referee`=#{id} AND a.`user_id` !=#{id}
+	</select>
+	<select id="getUserInfo" resultType="Map" parameterType="java.lang.Integer">
+		SELECT
+		a.`user_id` AS userId,
+		a.`username`,
+		CASE WHEN a.grade_id =20 THEN '初级经销商'
+		WHEN a.grade_id =30 THEN '中级经销商'
+		WHEN a.grade_id =40 THEN '高级经销商'
+		ELSE '普通' END AS 'gradeId',
+		a.`nick_name` AS 'niceName'
+		FROM sys_user a WHERE a.`user_id` =#{id}
+	</select>
+	<select id="getUseryj" parameterType="java.lang.Integer" resultType="java.lang.Double">
+		SELECT IFNULL(SUM(a.`retail_price`),0) FROM yj_goods_sku a
+		LEFT JOIN yj_order_goods b ON a.`goods_sku_id`=b.`goods_sku_id`
+		LEFT JOIN yj_order_wholesale c ON b.`order_no`=c.`order_no`
+		WHERE c.`user_id`=#{id}
+	</select>
+
+	<select id="getCountUserByUsername" parameterType="java.lang.String" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM sys_user_login_info a WHERE a.`username`=#{username}
+	</select>
+
+	<select id="getCountUserByMobile" parameterType="java.lang.String" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM sys_user a WHERE a.`mobile`=#{mobile}
+	</select>
+</mapper>

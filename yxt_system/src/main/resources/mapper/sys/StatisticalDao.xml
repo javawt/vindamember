@@ -1,0 +1,399 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.songlanyun.jymall.modules.business.sys.dao.StatisticalDao">
+
+	<select id="getSaleTotal" resultType="java.lang.Double">
+		SELECT SUM(a.`pay_price`)
+		FROM yj_order a WHERE a.`pay_status`=20 AND a.`order_status` NOT IN
+		(20,120,130)
+	</select>
+
+	<select id="getCashTotal" resultType="java.lang.Double">
+		SELECT SUM(a.`money`) FROM yj_cash a WHERE a.`status`=1
+	</select>
+	<select id="getTodayCashTotal" resultType="java.lang.Double">
+		SELECT SUM(a.`money`) FROM yj_cash a WHERE a.`status`=1 AND TO_DAYS(a.`create_date`) =
+		TO_DAYS(NOW())
+	</select>
+	<select id="getTodaySaleTotal" resultType="java.lang.Double">
+		SELECT
+		SUM(a.`pay_price`) FROM yj_order a WHERE a.`pay_status`=20 AND
+		a.`order_status` NOT IN (20,120,130) AND TO_DAYS(a.`create_time`) =
+		TO_DAYS(NOW())
+	</select>
+	<select id="getOrderNum" resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM
+		yj_order a WHERE a.`pay_status`=20 AND TO_DAYS(a.`create_time`) =
+		TO_DAYS(NOW())
+	</select>
+	<select id="getBoutiqueMovements" resultType="Map">
+		SELECT
+		IFNULL(t2.saleMoney,0) AS saleMoney, t1.dayTimes
+		FROM(
+		SELECT
+		@cdate :=
+		DATE_ADD( @cdate, INTERVAL - 1 DAY ) dayTimes
+		FROM
+		( SELECT @cdate :=
+		DATE_ADD( CURDATE( ), INTERVAL + 1 DAY ) FROM yj_order ) t0
+		LIMIT 7
+		) t1
+		LEFT JOIN(
+		SELECT SUM(a.`pay_price`) AS
+		saleMoney,DATE_FORMAT(a.`create_time`,"%Y-%m-%d")AS dayTimes FROM
+		yj_order a
+		WHERE a.`pay_status`=20 AND a.`order_type`=1 GROUP BY
+		DATE_FORMAT(a.`create_time`,"%Y-%m-%d")
+		) t2
+		ON t1.dayTimes =
+		t2.dayTimes
+		ORDER BY t1.dayTimes DESC
+	</select>
+	<select id="getRetailMovements" resultType="Map">
+		SELECT
+		IFNULL(t2.saleMoney,0) AS saleMoney, t1.dayTimes
+		FROM(
+		SELECT
+		@cdate :=
+		DATE_ADD( @cdate, INTERVAL - 1 DAY ) dayTimes
+		FROM
+		( SELECT @cdate :=
+		DATE_ADD( CURDATE( ), INTERVAL + 1 DAY ) FROM yj_order ) t0
+		LIMIT 7
+		) t1
+		LEFT JOIN(
+		SELECT SUM(a.`pay_price`) AS
+		saleMoney,DATE_FORMAT(a.`create_time`,"%Y-%m-%d")AS dayTimes FROM
+		yj_order a
+		WHERE a.`pay_status`=20 AND a.`order_type`=0 GROUP BY
+		DATE_FORMAT(a.`create_time`,"%Y-%m-%d")
+		) t2
+		ON t1.dayTimes =
+		t2.dayTimes
+		ORDER BY t1.dayTimes DESC
+	</select>
+	<select id="getOrderDetails" resultType="com.songlanyun.jymall.modules.business.order.entity.Order"
+		parameterType="com.songlanyun.jymall.modules.business.sys.entity.Statistical">
+		SELECT a.* FROM yj_order a WHERE 1=1
+		<if test="startDate!=null">
+			and DATE_FORMAT(a.`create_time`, '%Y-%m-%d') &gt;=
+			DATE_FORMAT(#{startDate}, '%Y-%m-%d')
+		</if>
+		<if test="endDate!=null">
+			and DATE_FORMAT(a.`create_time`, '%Y-%m-%d') &lt;=
+			DATE_FORMAT(#{endDate}, '%Y-%m-%d')
+		</if>
+	</select>
+	<select id="paymentSummaryList"
+		resultType="com.songlanyun.jymall.modules.business.sys.entity.PaymentSummary"
+		parameterType="com.songlanyun.jymall.modules.business.sys.entity.Statistical">
+		SELECT a.* FROM t_payment_summary a WHERE 1=1
+		<if test="startDate!=null">
+			and DATE_FORMAT(a.`create_time`, '%Y-%m-%d') &gt;=
+			DATE_FORMAT(#{startDate}, '%Y-%m-%d')
+		</if>
+		<if test="endDate!=null">
+			and DATE_FORMAT(a.`create_time`, '%Y-%m-%d') &lt;=
+			DATE_FORMAT(#{endDate}, '%Y-%m-%d')
+		</if>
+		<if test="userId!=null">
+			and a.`user_id`=#{userId}
+		</if>
+		ORDER BY a.`create_time` DESC
+	</select>
+	<select id="getLogList" parameterType="java.lang.String"
+		resultType="com.songlanyun.jymall.modules.business.sys.entity.SysLogEntity">
+		SELECT * FROM sys_log a
+		<where>
+			<if test="key!=null and key!='' ">
+				and ((a.`username` like CONCAT(CONCAT('%', #{key}), '%'))
+				or (a.`operation` like CONCAT(CONCAT('%', #{key}), '%')))
+			</if>
+		</where>
+		ORDER BY a.`create_date` DESC
+	</select>
+	<select id="personResults" resultType="com.songlanyun.jymall.modules.business.order.entity.Order"
+		parameterType="com.songlanyun.jymall.modules.business.sys.entity.Statistical">
+		SELECT * FROM yj_order a WHERE a.`user_id`=#{userId} AND
+		a.`order_type`=0 AND a.`pay_status`=20
+	</select>
+	<select id="getPTauto" resultType="com.songlanyun.jymall.modules.business.order.entity.Order">
+		SELECT * FROM yj_order a WHERE
+		a.`order_status`=30 AND a.`receipt_status`=10 and DATE_SUB(CURDATE(),
+		INTERVAL 7 DAY) >= DATE(a.`create_time`)
+	</select>
+	<select id="getPTautos" resultType="com.songlanyun.jymall.modules.business.order.entity.Order"
+		parameterType="java.lang.Integer">
+		SELECT * FROM yj_order a WHERE a.`order_status`=50 and
+		DATE_SUB(CURDATE(), INTERVAL ${days} DAY) >= DATE(a.`create_time`)
+	</select>
+
+	<update id="getyjMoneyList">
+		UPDATE yj_money a SET a.`status` =0 WHERE
+		DATE_SUB(CURDATE(), INTERVAL 7 DAY) >= DATE(a.`create_date`)
+	</update>
+
+	<select id="cashList" resultType="com.songlanyun.jymall.modules.business.score.entity.YjCash"
+		parameterType="java.lang.String">
+		SELECT * FROM yj_cash a WHERE a.`user_id`=#{userId} AND
+		a.`status`=1
+	</select>
+
+	<select id="getGoodsList" resultType="com.songlanyun.jymall.modules.business.goods.entity.YjGoods">
+		SELECT
+		a.`goods_id`,a.`goods_name`,a.`selling_point`,a.`category_id`,a.`spec_type`,a.`sales_initial`,
+		a.`sales_actual`,a.`goods_sort`,a.`goods_status`,a.`is_delete`,a.`create_time`,a.`update_time`,
+		a.`img_urls`,a.`activity_id`,a.`has_activity`,a.`activity_type`,a.`price`,a.`discount`,a.`freight`,a.`consig`,a.`wxapp_id`,a.`goods_type`
+		FROM yj_goods a
+	</select>
+	<select id="getGoodsLists" resultType="com.songlanyun.jymall.modules.business.goods.entity.YjGoods"
+		parameterType="Map">
+		SELECT
+		a.`goods_id`,a.`goods_name`,a.`selling_point`,a.`category_id`,a.`spec_type`,a.`sales_initial`,
+		a.`sales_actual`,a.`goods_sort`,a.`goods_status`,a.`is_delete`,a.`create_time`,a.`update_time`,
+		a.`img_urls`,a.`activity_id`,a.`has_activity`,a.`activity_type`,a.`price`,a.`discount`,a.`freight`,a.`consig`,a.`wxapp_id`,a.`goods_type`
+		FROM yj_goods a
+		where 1=1
+		limit ${page},${size}
+	</select>
+	<!--查询订单地址信息 -->
+	<select id="getOrderAddressByOrderNo"
+		resultType="com.songlanyun.jymall.modules.business.order.entity.OrderAddress"
+		parameterType="java.lang.String">
+		SELECT * FROM yj_order_address a WHERE
+		a.`order_no`=#{orderNo} LIMIT 1
+	</select>
+
+	<select id="getpersonSocre" parameterType="java.lang.Long"
+		resultType="java.lang.Double">
+		SELECT SUM(a.`money`) FROM yj_money_team a WHERE
+		a.`user_id`=#{userId} AND DATE_FORMAT(a.`create_date`, '%Y%m' ) =
+		DATE_FORMAT( CURDATE( ) , '%Y%m' )
+	</select>
+	<select id="getrechargesList" parameterType="java.lang.Long"
+		resultType="java.lang.Double">
+		SELECT SUM(a.`actual_money`) FROM yj_order_recharge a WHERE
+		a.`user_id`=#{userId} AND a.`order_status`=50 AND a.`order_type`=1 AND
+		DATE_FORMAT(a.`create_time`, '%Y%m' ) = DATE_FORMAT( CURDATE( ) ,
+		'%Y%m' )
+	</select>
+
+	<select id="getAddress" resultType="java.lang.String"
+		parameterType="java.lang.String">
+		SELECT
+		CONCAT(a.`province_id`,a.`city_id`,a.`region_id`,a.`detail`) FROM
+		yj_order_address a WHERE a.`order_no`=#{orderNo} LIMIT 1
+	</select>
+
+	<select id="cashListAuto"
+		parameterType="com.songlanyun.jymall.modules.business.score.entity.CashStatistical"
+		resultType="Map">
+		SELECT a.`id`,b.`username`,a.`money`,(a.`money`-a.`tax_money`) AS
+		`poundage`,
+		a.`tax_money`,a.cash_type AS `cashType`,
+		a.id_card AS `idCard`,a.remark,c.username AS `operName`,
+		a.`status`,
+		DATE_FORMAT(a.create_date,'%Y-%m-%d %H:%i:%s') AS createTime,
+		DATE_FORMAT(a.opter_date,'%Y-%m-%d %H:%i:%s') AS opterDate,
+		a.user_id AS `userId`
+		FROM yj_cash a LEFT JOIN sys_user b ON a.`user_id`=b.`user_id`
+		LEFT JOIN sys_user c ON a.opter_id = c.user_id WHERE 1=1
+		<if test="userId != null ">
+			and a.user_id=#{userId}
+		</if>
+		<if test="status != null ">
+			and a.status=#{status}
+		</if>
+		<if test="accountName !=null and accountName != ''">
+			and b.`username` like CONCAT('%',#{accountName},'%')
+		</if>
+		<if test="startDate!=null  and startDate != ''">
+			and DATE_FORMAT(a.`create_date`, '%Y-%m-%d') &gt;=
+			DATE_FORMAT(#{startDate}, '%Y-%m-%d')
+		</if>
+		<if test="endDate!=null  and endDate != ''">
+			and DATE_FORMAT(a.`create_date`, '%Y-%m-%d') &lt;=
+			DATE_FORMAT(#{endDate}, '%Y-%m-%d')
+		</if>
+		order by a.`create_date` desc
+	</select>
+
+	<!-- /*CASE
+		WHEN d.`order_type`=0 THEN c.`retail_price`
+		ELSE d.`pay_price` END AS 'pay_price',*/ -->
+	<select id="ptListAuto"
+		parameterType="com.songlanyun.jymall.modules.business.score.entity.CashStatistical"
+		resultType="Map">
+		SELECT a.`order_no`,b.`goods_name`,c.`spec_sku_id`,a.`create_time`,
+		CASE
+		WHEN d.`order_type`=0 THEN c.`retail_price`
+		WHEN d.`order_type`=1 THEN c.`goods_price`
+		ELSE c.`barter_price` END AS 'ls_price',
+		CASE
+		WHEN d.`order_type`=0 THEN c.`retail_price`
+		ELSE d.`pay_price` END AS 'ws_price',
+		CASE WHEN
+		d.`order_type`=0 THEN a.`ordinary_num`
+		ELSE a.`total_num` END AS 'totalNum',
+		d.`pay_type`,
+		d.`pay_price`,
+		d.`express_price`,DATE_FORMAT(d.`create_time`,'%Y-%m-%d %H:%i:%s') AS
+		`createTime`,
+		e.`username` AS `buyerName`,d.`buyer_remark`,f.`name` AS `shName`,f.`phone` AS
+		`shPhone`,
+		CONCAT(f.`province_id`,f.`city_id`,f.`region_id`,f.`detail`) AS
+		`shAddress`,
+		d.`express_company`,d.`express_no`,d.`pay_status`,d.`pay_time`,
+		b.`agent_id`,d.`order_status`,
+		CASE
+		WHEN d.`order_type`=0 THEN (c.`ws_price` * a.`consign_num`)
+		ELSE '--' END AS 'pf_price',
+		g.dea_name,
+		d.order_type,
+		b.img_urls,
+		d.delivery_type AS 'deliveryType'
+		FROM yj_order_goods a
+		LEFT JOIN yj_goods b ON a.`goods_id`=b.`goods_id`
+		LEFT JOIN yj_goods_sku c ON c.`goods_sku_id`=a.`goods_sku_id`
+		LEFT JOIN yj_order d ON a.`order_no`=d.`order_no`
+		LEFT JOIN sys_user e ON e.`user_id`=d.`user_id`
+		LEFT JOIN yj_order_address f ON a.`order_no`=f.`order_no`
+		LEFT JOIN t_dealers g ON g.id=b.agent_id
+		WHERE 1=1
+		<if test="did !=null and did !=''">
+			and b.`agent_id`=#{did}
+		</if>
+		<if test="ostatus !=null and ostatus !=''">
+			and d.`order_status`=#{ostatus}
+		</if>
+		<if test="orderNo !=null and orderNo !='' ">
+			and a.`order_no`=#{orderNo}
+		</if>
+		<if test="orderType !=null and orderType != ''">
+			and d.`order_type`=#{orderType}
+		</if>
+		<if test="userName!=null and userName != ''">
+			and ((e.`username` like CONCAT('%',#{userName},'%')) or (f.`name` like
+			CONCAT('%',#{userName},'%')) )
+		</if>
+		<if test="startDates!=null">
+			and DATE_FORMAT(d.`create_time`, '%Y-%m-%d') &gt;=
+			DATE_FORMAT(#{startDates}, '%Y-%m-%d')
+		</if>
+		<if test="endDates!=null">
+			and DATE_FORMAT(d.`create_time`, '%Y-%m-%d') &lt;=
+			DATE_FORMAT(#{endDates}, '%Y-%m-%d')
+		</if>
+		order by a.`create_time` desc
+	</select>
+	<select id="ptListAutoTotal"
+		parameterType="com.songlanyun.jymall.modules.business.score.entity.CashStatistical"
+		resultType="java.lang.Double">
+		SELECT SUM(d.`pay_price`)
+		FROM yj_order_goods a
+		LEFT JOIN yj_goods b ON a.`goods_id`=b.`goods_id`
+		LEFT JOIN yj_goods_sku c ON c.`goods_sku_id`=a.`goods_sku_id`
+		LEFT JOIN yj_order d ON a.`order_no`=d.`order_no`
+		LEFT JOIN sys_user e ON e.`user_id`=d.`user_id`
+		LEFT JOIN yj_order_address f ON a.`order_no`=f.`order_no`
+		LEFT JOIN t_dealers g ON g.id=b.agent_id
+		WHERE 1=1
+		<if test="did !=null and did !=''">
+			and b.`agent_id`=#{did}
+		</if>
+		<if test="ostatus !=null and ostatus !=''">
+			and d.`order_status`=#{ostatus}
+		</if>
+		<if test="orderNo !=null and orderNo !='' ">
+			and a.`order_no`=#{orderNo}
+		</if>
+		<if test="orderType !=null and orderType != ''">
+			and d.`order_type`=#{orderType}
+		</if>
+		<if test="userName!=null and userName != ''">
+			and ((e.`username` like CONCAT('%',#{userName},'%')) or (f.`name` like
+			CONCAT('%',#{userName},'%')) )
+		</if>
+		<if test="startDates!=null">
+			and DATE_FORMAT(d.`create_time`, '%Y-%m-%d') &gt;=
+			DATE_FORMAT(#{startDates}, '%Y-%m-%d')
+		</if>
+		<if test="endDates!=null">
+			and DATE_FORMAT(d.`create_time`, '%Y-%m-%d') &lt;=
+			DATE_FORMAT(#{endDates}, '%Y-%m-%d')
+		</if>
+		order by a.`create_time` desc
+	</select>
+
+	<!-- /*(c.ws_price
+		* a.`consign_num`) AS 'pay_price',*/ -->
+	<select id="jsListAuto"
+		parameterType="com.songlanyun.jymall.modules.business.score.entity.CashStatistical"
+		resultType="Map">
+		SELECT a.`order_no`,b.`goods_name`,c.`spec_sku_id`,
+		c.`ws_price` AS 'pf_price',
+		(a.`consign_num`-d.`sale_num`) AS 'totalNum',
+		d.`pay_type`,
+		d.`pay_price`,
+		d.`express_price`,DATE_FORMAT(d.`create_time`,'%Y-%m-%d %H:%i:%s') AS
+		`createTime`,
+		e.`username` AS `buyerName`,d.`buyer_remark`,f.`name` AS
+		`shName`,f.`phone` AS `shPhone`,
+		CONCAT(f.`province_id`,f.`city_id`,f.`region_id`,f.`detail`) AS
+		`shAddress`,
+		d.`express_company`,d.`express_no`,d.`pay_status`,d.`pay_time`,
+		b.`agent_id`,d.`order_status`,
+		(c.`ws_price` * a.`consign_num`) AS
+		'ws_price',
+		g.dea_name,
+		d.order_type,
+		b.img_urls,
+		d.delivery_type AS
+		'deliveryType'
+		FROM yj_order_goods a
+		LEFT JOIN yj_goods b ON
+		a.`goods_id`=b.`goods_id`
+		LEFT JOIN yj_goods_sku c ON
+		c.`goods_sku_id`=a.`goods_sku_id`
+		LEFT JOIN yj_order_wholesale d ON
+		a.`order_no`=d.`order_no`
+		LEFT JOIN sys_user e ON
+		e.`user_id`=d.`user_id`
+		LEFT JOIN yj_order_address f ON
+		a.`order_no`=f.`order_no`
+		LEFT JOIN t_dealers g ON g.id=b.agent_id
+		WHERE d.`order_type`=0
+		<if test="did !=null and did !=''">
+			and b.`agent_id`=#{did}
+		</if>
+		<if test="ostatus !=null and ostatus !=''">
+			and d.`order_status`=#{ostatus}
+		</if>
+		<if test="orderNo !=null and orderNo !='' ">
+			and a.`order_no`=#{orderNo}
+		</if>
+		<if test="userName!=null and userName != ''">
+			and ((e.`username` like CONCAT('%',#{userName},'%')) or
+			(f.`name` like CONCAT('%',#{userName},'%')) )
+		</if>
+		<if test="startDates!=null">
+			and DATE_FORMAT(d.`create_time`, '%Y-%m-%d') &gt;=
+			DATE_FORMAT(#{startDates}, '%Y-%m-%d')
+		</if>
+		<if test="endDates!=null">
+			and DATE_FORMAT(d.`create_time`, '%Y-%m-%d') &lt;=
+			DATE_FORMAT(#{endDates}, '%Y-%m-%d')
+		</if>
+	</select>
+	<select id="getApliInfo" resultType="java.lang.String"
+		parameterType="Map">
+		SELECT a.`user_name` FROM jy_apply_bind a WHERE
+		a.`user_id`=#{userId} AND a.`apply_account`=#{idCard} LIMIT 1
+	</select>
+	<select id="getBankInfo" resultType="Map" parameterType="Map">
+		SELECT
+		a.`bank`,a.`real_name`,a.`bank_address` FROM jy_bank_bind a WHERE
+		a.`user_id`=#{userId} AND a.`ic_card`=#{idCard} LIMIT 1
+	</select>
+</mapper>

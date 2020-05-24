@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.songlanyun.jymall.modules.business.sys.dao.SysUserAdviceDao">
+	<insert id="addUserAdvice"
+		parameterType="com.songlanyun.jymall.modules.business.sys.entity.SysUserAdvice">
+		INSERT INTO t_user_advice (advice_type, contact, create_by, advice_content)
+		VALUES (#{adviceType},#{contact},#{createBy},#{adviceContent})
+	</insert>
+	<update id="updateUserAdvice"
+		parameterType="com.songlanyun.jymall.modules.business.sys.entity.SysUserAdvice">
+		UPDATE t_user_advice a SET a.`advice_type`=#{adviceType}
+		,a.`advice_content`=#{adviceContent} ,a.`contact`=#{contact} WHERE
+		a.`advice_id`=#{adviceId}
+	</update>
+	<select id="selectUserAdvice"
+		parameterType="com.songlanyun.jymall.modules.business.sys.entity.SysUserAdvice"
+		resultType="Map">
+		SELECT a.`advice_id` AS adviceId,a.`advice_type` AS adviceType
+		,a.`advice_content` AS adviceContent,
+		a.`contact`,a.`create_time` AS createTime
+		FROM t_user_advice a ORDER BY a.`create_time` DESC
+	</select>
+</mapper>

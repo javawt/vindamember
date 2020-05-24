@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.songlanyun.jymall.modules.business.dict.dao.YjDictDao">
+
+	<!-- 可根据自己的需求，是否要使用 -->
+	<resultMap
+		type="com.songlanyun.jymall.modules.business.jysys.dict.entity.YjDictEntity"
+		id="yjDictMap">
+		<result property="id" column="id" />
+		<result property="ext" column="ext" />
+		<result property="dkey" column="dkey" />
+		<result property="dtype" column="dtype" />
+		<result property="dvalue" column="dvalue" />
+	</resultMap>
+
+
+</mapper>

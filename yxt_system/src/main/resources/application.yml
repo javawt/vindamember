@@ -1,0 +1,127 @@
+# Tomcat
+server:
+  tomcat:
+    uri-encoding: UTF-8
+    max-threads: 1000
+    min-spare-threads: 30
+  port: 10086
+  #port: 8081
+  connection-timeout: 5000ms
+  servlet:
+    context-path: /yxt
+
+spring:
+  # 环境 dev|test|prod
+  profiles:
+    active: dev
+    include:
+      - alipay
+  # jackson时间格式化
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      indent-output: true
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+      enabled: true
+  redis:
+    open: true  # 是否开启redis缓存  true开启   false关闭
+    database: 6 #jy 0  cc1
+    #host: 192.168.0.119
+    #host: 115.29.195.218
+    host: 127.0.0.1
+    port: 6379
+    password:    # 密码（默认为空）
+    timeout: 6000ms  # 连接超时时长（毫秒）
+    jedis:
+      pool:
+        max-active: 1000  # 连接池最大连接数（使用负值表示没有限制）
+        max-wait: -1ms      # 连接池最大阻塞等待时间（使用负值表示没有限制）
+        max-idle: 10      # 连接池中的最大空闲连接
+        min-idle: 5       # 连接池中的最小空闲连接
+  jpa:
+    show-sql: true     # 是否打印sql
+    hibernate:
+      ddl-auto: update   # 实体类修改之后对数据库的更新方式
+  mvc:
+    throw-exception-if-no-handler-found: true
+#  resources:
+#    add-mappings: false
+
+
+#mybatis
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  #实体扫描，多个package用逗号或者分号分隔
+  typeAliasesPackage: com.songlanyun.jymall.modules.*.entity
+  global-config:
+    #数据库相关配置
+    db-config:
+      #主键类型  AUTO:"数据库ID自增", INPUT:"用户输入ID", ID_WORKER:"全局唯一ID (数字类型唯一ID)", UUID:"全局唯一ID UUID";
+      id-type: AUTO
+      logic-delete-value: -1
+      logic-not-delete-value: 0
+    banner: false
+  #原生配置
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+    jdbc-type-for-null: 'null'
+
+
+renren:
+  redis:
+    open: false
+  shiro:
+    redis: false
+  # APP模块，是通过jwt认证的，如果要使用APP模块，则需要修改【加密秘钥】
+  jwt:
+    # 加密秘钥
+    secret: f4e2e52034348f86b67cde581c0f9eb5[www.renren.io]
+    # token有效时长，7天，单位秒
+    expire: 604800
+    header: token
+
+
+#对不需要的 token 取消验证 60*10,TimeUnit.SECONDS
+ignoreMethod: login,register,captcha.jpg,getBlock,upload,uploadFile,static,html
+redis:
+   login: "sly:jyapp:login:"
+   verCodeTm: 300
+   loginTm: 1800
+sms:
+   appkey: 3cd8dd4d88102d3f
+   url: "http://api.jisuapi.com/sms/send"
+   template: "尊敬的会员，您的验证码:%1。您正在注册，10分钟内有效。【喜来购商城】"
+   templateupdate: "验证码：@，如非本人操作，请忽略本短信【喜来购商城】"
+
+#第一个用户的邀请码
+baseInvitation_code: "000000"
+nginx_path: "usr/local/nginx/html"
+
+order:
+  expire:
+    time: 15
+
+#快递鸟账号配置
+kuaidi:
+  ebusinessid: 1608065
+  appkey: fe6005c5-1b3b-4856-92d6-96475fcaf721
+  requrl: http://api.kdniao.com/Ebusiness/EbusinessOrderHandle.aspx
+
+#定时任务
+#每分钟
+task1: 0/60 * *  * * ?
+#每月1号的0:10:00执行
+task2: 0 10 0 1 * ?
+#每天零点半
+task3: 0 30 0 * * ?
+#每半个小时
+task4: 0 0/30 * * * ?
+
+#配置N天后后台系统自动确认收货,默认设置7天
+confirmdays: 7

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songlanyun.jymall.modules.shop.dao.TbShopClerkInfoDao">
+
+    <resultMap type="com.songlanyun.jymall.modules.shop.entity.TbShopClerkInfo" id="TbShopClerkInfoMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="shopId" column="shop_id" jdbcType="INTEGER"/>
+        <result property="clerkName" column="clerk_name" jdbcType="VARCHAR"/>
+        <result property="phone" column="phone" jdbcType="VARCHAR"/>
+        <result property="shortInfo" column="short_info" jdbcType="VARCHAR"/>
+        <result property="openPrivilege" column="open_privilege" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="TbShopClerkInfoMap">
+        select
+          id, shop_id, clerk_name, phone, short_info, open_privilege, user_id
+        from yxt_admin.tb_shop_clerk_info
+        where id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="TbShopClerkInfoMap">
+        select
+          id, shop_id, clerk_name, phone, short_info, open_privilege, user_id
+        from yxt_admin.tb_shop_clerk_info
+        limit #{offset}, #{limit}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="TbShopClerkInfoMap">
+        select
+          id, shop_id, clerk_name, phone, short_info, open_privilege, user_id
+        from yxt_admin.tb_shop_clerk_info
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="shopId != null">
+                and shop_id = #{shopId}
+            </if>
+            <if test="clerkName != null and clerkName != ''">
+                and clerk_name = #{clerkName}
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone = #{phone}
+            </if>
+            <if test="shortInfo != null and shortInfo != ''">
+                and short_info = #{shortInfo}
+            </if>
+            <if test="openPrivilege != null">
+                and open_privilege = #{openPrivilege}
+            </if>
+            <if test="userId != null and userId != ''">
+                and user_id = #{userId}
+            </if>
+        </where>
+    </select>
+    <select id="select" resultMap="TbShopClerkInfoMap" parameterType="com.songlanyun.jymall.modules.shop.entity.TbShopClerkInfo">
+        select
+          id, shop_id, clerk_name, phone, short_info, open_privilege, user_id
+        from yxt_admin.tb_shop_clerk_info
+        <where>
+            <if test="clerkName != null and clerkName != ''">
+                and clerk_name like CONCAT('%',#{clerkName},'%')
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone like CONCAT('%',#{phone},'%')
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into yxt_admin.tb_shop_clerk_info(shop_id, clerk_name, phone, short_info, open_privilege, user_id)
+        values (#{shopId}, #{clerkName}, #{phone}, #{shortInfo}, #{openPrivilege}, #{userId})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update yxt_admin.tb_shop_clerk_info
+        <set>
+            <if test="shopId != null">
+                shop_id = #{shopId},
+            </if>
+            <if test="clerkName != null and clerkName != ''">
+                clerk_name = #{clerkName},
+            </if>
+            <if test="phone != null and phone != ''">
+                phone = #{phone},
+            </if>
+            <if test="shortInfo != null and shortInfo != ''">
+                short_info = #{shortInfo},
+            </if>
+            <if test="openPrivilege != null">
+                open_privilege = #{openPrivilege},
+            </if>
+            <if test="userId != null and userId != ''">
+                user_id = #{userId},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from yxt_admin.tb_shop_clerk_info where id = #{id}
+    </delete>
+
+</mapper>

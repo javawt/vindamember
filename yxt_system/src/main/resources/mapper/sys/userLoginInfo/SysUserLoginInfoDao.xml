@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.songlanyun.jymall.modules.business.jysys.sysuser.dao.SysUserLoginInfoDao">
+
+	<select id="findByUserId" parameterType="java.lang.String" resultType="com.songlanyun.jymall.modules.business.sys.entity.SysUserLoginInfo">
+		SELECT a.* FROM sys_user_login_info a WHERE a.`user_id`=#{userId} LIMIT 1
+	</select>
+
+	<insert id="save" parameterType="com.songlanyun.jymall.modules.business.sys.entity.SysUserLoginInfo">
+		INSERT INTO sys_user_login_info (user_id,username,`password`,salt,`status`,pay_psw,user_type,is_member,is_influencer)
+		VALUE(#{userId},#{username},#{password},#{salt},#{status},#{payPsw},#{userType},#{isMember},#{isInfluencer})
+	</insert>
+
+</mapper>
