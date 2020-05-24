@@ -3,6 +3,7 @@ yxt_shop_server/target/
 yxt_shop/target/
 yxt_order/target/
 yxt_common/target/
+yxt_system/target/
 
 
 yxt_common/yxt_common.iml
