@@ -26,18 +26,19 @@
         <result property="checkStatus" column="check_status" jdbcType="INTEGER"/>
         <result property="checkTime" column="check_time" jdbcType="TIMESTAMP"/>
         <result property="checkReason" column="check_reason" jdbcType="VARCHAR"/>
+        <result property="ownerPhone" column="owner_phone" jdbcType="VARCHAR"/>
     </resultMap>
 
     <!--新增所有列-->
     <insert id="save" parameterType="com.songlanyun.jymall.modules.shop.entity.TbShopOwnerApplyInfo">
-        insert into tb_shop_owner_apply_info(user_id, owner_name, id_card, id_card_front, id_card_reverse, phone, business_licence, staff_num, server_contact, shop_name, short_info, head_url, province, city, `area`, address)
-        values (#{userId}, #{ownerName}, #{idCard}, #{idCardFront}, #{idCardReverse}, #{phone}, #{businessLicence}, #{staffNum}, #{serverContact}, #{shopName}, #{shortInfo}, #{headUrl}, #{province}, #{city}, #{area}, #{address})
+        insert into tb_shop_owner_apply_info(user_id, owner_name, id_card, id_card_front, id_card_reverse, phone, business_licence, staff_num, server_contact, shop_name, short_info, head_url, province, city, `area`, address,owner_phone)
+        values (#{userId}, #{ownerName}, #{idCard}, #{idCardFront}, #{idCardReverse}, #{phone}, #{businessLicence}, #{staffNum}, #{serverContact}, #{shopName}, #{shortInfo}, #{headUrl}, #{province}, #{city}, #{area}, #{address}, #{ownerPhone})
     </insert>
 
     <select id="selectNewRecode" parameterType="java.lang.String" resultMap="TbShopOwnerApplyInfoMap">
         SELECT a.`owner_name`,a.`id_card`,a.`id_card_front`,a.`id_card_reverse`,
         a.`phone`,a.`business_licence`,a.`staff_num`,a.`server_contact`,a.`shop_name`,a.`short_info`,a.`head_url`,
-        a.`province`,a.`city`,a.`area`,a.`address` FROM tb_shop_owner_apply_info a WHERE a.`user_id`=#{userId} ORDER BY a.`apply_time` DESC LIMIT 1
+        a.`province`,a.`city`,a.`area`,a.`address`,a.`owner_phone` FROM tb_shop_owner_apply_info a WHERE a.`user_id`=#{userId} ORDER BY a.`apply_time` DESC LIMIT 1
     </select>
 
     <!-- 更新审核结果 -->
